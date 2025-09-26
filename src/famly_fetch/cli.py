@@ -71,6 +71,20 @@ def get_version():
     show_default=True,
     type=str,
 )
+@click.option(
+    "--latitude",
+    envvar="LATITUDE",
+    type=float,
+    help="Latitude for EXIF GPS data, can be set via LATITUDE env var",
+    metavar="LAT",
+)
+@click.option(
+    "--longitude",
+    envvar="LONGITUDE",
+    type=float,
+    help="Longitude for EXIF GPS data, can be set via LONGITUDE env var",
+    metavar="LONG",
+)
 @click.version_option()
 def main(
     email: str,
@@ -82,6 +96,8 @@ def main(
     pictures_folder: Path,
     stop_on_existing: bool,
     user_agent: str,
+    latitude: float,
+    longitude: float,
 ):
     """Fetch kids' images from famly.co"""
 
@@ -92,6 +108,8 @@ def main(
             pictures_folder,
             stop_on_existing=stop_on_existing,
             user_agent=user_agent,
+            latitude=latitude,
+            longitude=longitude,
         )
 
         if messages:
