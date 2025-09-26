@@ -233,10 +233,10 @@ class FamlyDownloader:
         """Generate the file path for the downloaded image."""
 
         file_ext = os.path.splitext(urlparse(img.url).path)[1].lower()
-        captured_date = img.date.strftime("%Y-%m-%d_%H-%M-%S")
+        captured_date = img.date.strftime("%Y%m%d_%H%M%S")
         return Path(
             self._pictures_folder,
-            f"{filename_prefix}-{captured_date}-{img.img_id}{file_ext}",
+            f"{captured_date}_{img.img_id}{file_ext}",
         )
 
     def fetch_image(self, img: BaseImage, file_path: Path):
