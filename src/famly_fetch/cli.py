@@ -88,6 +88,11 @@ def get_version():
     help="Longitude for EXIF GPS data, can be set via LONGITUDE env var",
     metavar="LONG",
 )
+@click.option(
+    "--no-text-comments",
+    is_flag=True,
+    help="Don't add observation and message body text to image EXIF UserComment field",
+)
 @click.version_option()
 def main(
     email: str,
@@ -102,6 +107,7 @@ def main(
     user_agent: str,
     latitude: float,
     longitude: float,
+    no_text_comments: bool,
 ):
     """Fetch kids' images from famly.co"""
 
@@ -125,6 +131,7 @@ def main(
             access_token=access_token,
             latitude=latitude,
             longitude=longitude,
+            no_text_comments=no_text_comments,
         )
 
         if messages:

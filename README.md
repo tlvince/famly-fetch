@@ -27,7 +27,7 @@ the folder where you run this program from.
 By default, it will only download images where you have tagged your child. The
 date that the photo was taken is embedded in its metadata and in its title.
 For journey, notes and messages, the associated text is also added as an exif
-comment.
+comment unless disabled with `--no-text-comments`.
 
 The images have been stripped for any metadata including EXIF
 information by Famly. You can optionally add GPS coordinates to the EXIF
@@ -68,10 +68,15 @@ Options:
   -u, --user-agent                User Agent used in Famly requests, can be
                                   set via FAMLY_USER_AGENT env var  [default:
                                   famly-fetch/0.2.0]
+<<<<<<< HEAD
   --latitude LAT                  Latitude for EXIF GPS data, can be set via
                                   LATITUDE env var
   --longitude LONG                Longitude for EXIF GPS data, can be set via
                                   LONGITUDE env var
+=======
+  --no-text-comments              Don't add observation and message body text
+                                  to image EXIF UserComment field
+>>>>>>> feat/optional-text
   --version                       Show the version and exit.
   --help                          Show this message and exit.
 ```
