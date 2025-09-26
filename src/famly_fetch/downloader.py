@@ -46,14 +46,16 @@ class FamlyDownloader:
         all_children = []
 
         # Current children
-        for role in my_info["roles2"]:
-            all_children.append((role["targetId"], role["title"]))
+        if my_info and "roles2" in my_info:
+            for role in my_info["roles2"]:
+                all_children.append((role["targetId"], role["title"]))
 
         # Previous children (that's what they call it)
         prev_children = []
-        for ele in my_info["behaviors"]:
-            if ele["id"] == "ShowPreviousChildren":
-                prev_children = ele["payload"]["children"]
+        if my_info and "behaviors" in my_info:
+            for ele in my_info["behaviors"]:
+                if ele["id"] == "ShowPreviousChildren":
+                    prev_children = ele["payload"]["children"]
 
         for child in prev_children:
             all_children.append((child["childId"], child["name"]["firstName"]))
@@ -71,9 +73,13 @@ class FamlyDownloader:
             batch = self._apiClient.get_child_notes(
                 child_id, cursor=next_ref, first=100
             )
-            click.echo(f"{len(batch['result'])} fetched.")
+            if batch and "result" in batch:
+                click.echo(f"{len(batch['result'])} fetched.")
+            else:
+                click.echo("0 fetched.")
+                break
 
-            for _i, note in enumerate(batch["result"]):
+            for _i, note in enumerate(batch.get("result", [])):
                 text = note["text"] + " - " + note["createdBy"]["name"]["fullName"]
                 date = note["createdAt"]
 
@@ -95,7 +101,7 @@ class FamlyDownloader:
                             continue
                     self.fetch_image(img, file_path)
 
-            next_ref = batch["next"]
+            next_ref = batch.get("next") if batch else None
 
             if not next_ref:
                 break
@@ -112,9 +118,13 @@ class FamlyDownloader:
             batch = self._apiClient.learning_journey_query(
                 child_id, cursor=next_cursor, first=100
             )
-            click.echo(f"{len(batch['results'])} fetched.")
+            if batch and "results" in batch:
+                click.echo(f"{len(batch['results'])} fetched.")
+            else:
+                click.echo("0 fetched.")
+                break
 
-            for _i, observation in enumerate(batch["results"]):
+            for _i, observation in enumerate(batch.get("results", [])):
                 text = (
                     observation["remark"]["body"]
                     + " - "
@@ -140,7 +150,7 @@ class FamlyDownloader:
                             continue
                     self.fetch_image(img, file_path)
 
-            next_cursor = batch["next"]
+            next_cursor = batch.get("next") if batch else None
 
             if not next_cursor:
                 break
@@ -153,7 +163,11 @@ class FamlyDownloader:
             "GET", "/api/v2/images/tagged", params={"childId": child_id}
         )
 
-        click.echo(f"Fetching {len(imgs)} tagged images for {first_name}")
+        if imgs:
+            click.echo(f"Fetching {len(imgs)} tagged images for {first_name}")
+        else:
+            click.echo("0 tagged images found")
+            return
 
         for img_no, img_dict in enumerate(imgs, start=1):
             img = Image.from_dict(img_dict)
@@ -178,35 +192,40 @@ class FamlyDownloader:
         click.secho("Downloading images from messages...", fg="green")
 
         conv_ids = self._apiClient.make_api_request("GET", "/api/v2/conversations")
-        click.echo(f"Found {len(conv_ids)} conversations")
+        if conv_ids:
+            click.echo(f"Found {len(conv_ids)} conversations")
+        else:
+            click.echo("0 conversations found")
+            return
 
         for conv_id in reversed(conv_ids):
             conversation = self._apiClient.make_api_request(
                 "GET", "/api/v2/conversations/%s" % (conv_id["conversationId"])
             )
-            for msg in reversed(conversation["messages"]):
-                text = msg["body"] + " - " + msg["author"]["title"]
-                date = msg["createdAt"]
+            if conversation and "messages" in conversation:
+                for msg in reversed(conversation["messages"]):
+                    text = msg["body"] + " - " + msg["author"]["title"]
+                    date = msg["createdAt"]
 
-                for img_dict in msg["images"]:
-                    img = Image.from_dict(
-                        img_dict, date_override=date, text_override=text
-                    )
-
-                    click.echo(f" - image {img.img_id} from message at {img.date}")
-
-                    file_path = self.download_file_path(img, "message")
-
-                    if file_path.is_file and file_path.exists():
-                        click.secho(
-                            f"File {file_path} already exists, {'stopping download' if self.stop_on_existing else 'skipping'}.",
-                            fg="yellow",
+                    for img_dict in msg["images"]:
+                        img = Image.from_dict(
+                            img_dict, date_override=date, text_override=text
                         )
-                        if self.stop_on_existing:
-                            return
-                        else:
-                            continue
-                    self.fetch_image(img, file_path)
+
+                        click.echo(f" - image {img.img_id} from message at {img.date}")
+
+                        file_path = self.download_file_path(img, "message")
+
+                        if file_path.is_file and file_path.exists():
+                            click.secho(
+                                f"File {file_path} already exists, {'stopping download' if self.stop_on_existing else 'skipping'}.",
+                                fg="yellow",
+                            )
+                            if self.stop_on_existing:
+                                return
+                            else:
+                                continue
+                        self.fetch_image(img, file_path)
 
     def download_file_path(self, img: BaseImage, filename_prefix: str) -> Path:
         """Generate the file path for the downloaded image."""

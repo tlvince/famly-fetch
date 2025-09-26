@@ -1,5 +1,7 @@
 import hashlib
 import json
+import urllib.error
+import urllib.parse
 import urllib.request
 import uuid
 
@@ -102,7 +104,7 @@ class ApiClient:
             body=postBody,
         )
 
-        return data["data"]
+        return data["data"] if data else {}
 
     def make_api_request(self, method, path, body=None, params=None):
         """
